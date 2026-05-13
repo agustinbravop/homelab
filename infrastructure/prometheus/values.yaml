@@ -1,0 +1,4 @@
+# In this file we will override the default values of the kube-prometheus-stack chart
+# For now, we will just disable grafana as we will install it separately
+grafana:
+  enabled: false
