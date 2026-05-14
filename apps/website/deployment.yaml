@@ -19,6 +19,7 @@ spec:
       containers:
         - name: website
           image: ghcr.io/agustinbravop/website:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
               name: http
