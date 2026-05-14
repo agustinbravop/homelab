@@ -1,0 +1,15 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: website
+  namespace: argocd
+spec:
+  commonUpdateSettings:
+    updateStrategy: "digest"
+  writeBackConfig:
+    method: argocd
+  applicationRefs:
+    - namePattern: "website"
+      images:
+        - alias: website
+          imageName: ghcr.io/agustinbravop/website:latest

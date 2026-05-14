@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - cert-manager/cluster-issuer.yaml
   - argocd/website-app.yaml
+  - argocd/website-imageupdater.yaml

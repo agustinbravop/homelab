@@ -30,7 +30,8 @@ helm upgrade --install argocd argo/argo-cd \
 
 echo "Installing ArgoCD Image Updater with Helm..."
 helm upgrade --install argocd-image-updater argo/argocd-image-updater \
-  --namespace argocd
+  --namespace argocd \
+  --version 1.1.5
 
 echo "Waiting for ArgoCD to be ready..."
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s

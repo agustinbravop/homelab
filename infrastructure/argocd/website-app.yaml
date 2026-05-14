@@ -5,17 +5,15 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/refresh: hard
-    # Using `argocd` method instead of `git` redeploys the app without having to push a commit to the repo.
-    # This is a lot simpler in this case but doesn't follow strict GitOps principles.
-    argocd.image-updater.argoproj.io/write-back-method: argocd
-    argocd.image-updater.argoproj.io/image-list: website=ghcr.io/agustinbravop/website:latest
-    argocd.image-updater.argoproj.io/website.update-strategy: digest
 spec:
   project: default
   source:
     repoURL: https://github.com/agustinbravop/homelab
     targetRevision: main
     path: apps/website
+    kustomize:
+      images:
+        - ghcr.io/agustinbravop/website:latest
   destination:
     server: https://kubernetes.default.svc
     namespace: default
