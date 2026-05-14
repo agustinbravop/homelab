@@ -4,6 +4,8 @@ metadata:
   name: website
   labels:
     app: website
+  annotations:
+    argocd.argoproj.io/refresh: hard
 spec:
   replicas: 1
   selector:
@@ -16,7 +18,7 @@ spec:
     spec:
       containers:
         - name: website
-          image: agustinbravop/website:latest
+          image: ghcr.io/agustinbravop/website:latest
           ports:
             - containerPort: 80
               name: http
