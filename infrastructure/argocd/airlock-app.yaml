@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: website
+  name: airlock
   namespace: argocd
   annotations:
     argocd.argoproj.io/refresh: hard
@@ -10,13 +10,13 @@ spec:
   source:
     repoURL: https://github.com/agustinbravop/homelab
     targetRevision: main
-    path: apps/website
+    path: apps/airlock
     kustomize:
       images:
-        - ghcr.io/agustinbravop/website:latest
+        - ghcr.io/agustinbravop/airlock:latest
   destination:
     server: https://kubernetes.default.svc
-    namespace: website
+    namespace: airlock
   syncPolicy:
     automated:
       prune: true

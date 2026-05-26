@@ -5,8 +5,10 @@ resources:
 - deployment.yaml
 - service.yaml
 - ingress.yaml
+- sealedsecret.yaml
+- configmap.yaml
 
 labels:
 - includeSelectors: true
   pairs:
-    app: website
+    app: airlock

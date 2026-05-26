@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airlock
+  labels:
+    app: airlock
+  annotations:
+    argocd.argoproj.io/refresh: hard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airlock
+  template:
+    metadata:
+      labels:
+        app: airlock
+    spec:
+      containers:
+        - name: airlock
+          image: ghcr.io/agustinbravop/airlock
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: PRODUCTION
+              value: "true"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: airlock
+                  key: OPENAI_API_KEY
+            - name: AIRLOCK_AGENT_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: airlock
+                  key: AIRLOCK_AGENT_MODEL
+            - name: AIRLOCK_SUSPICION_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: airlock
+                  key: AIRLOCK_SUSPICION_MODEL
+            - name: AIRLOCK_CLUE_REVEAL_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: airlock
+                  key: AIRLOCK_CLUE_REVEAL_MODEL
+            - name: AIRLOCK_STT_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: airlock
+                  key: AIRLOCK_STT_MODEL
+            - name: AIRLOCK_TTS_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: airlock
+                  key: AIRLOCK_TTS_MODEL
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10

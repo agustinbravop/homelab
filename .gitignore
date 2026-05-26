@@ -2,3 +2,4 @@ kubeconfig.yaml
 .secrets
 .env
 *.pem
+apps/**/secret.yaml

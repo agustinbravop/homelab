@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airlock
+data:
+  AIRLOCK_AGENT_MODEL: gpt-4.1-mini
+  AIRLOCK_SUSPICION_MODEL: gpt-4.1-mini
+  AIRLOCK_CLUE_REVEAL_MODEL: gpt-4.1-mini
+  AIRLOCK_STT_MODEL: whisper-1
+  AIRLOCK_TTS_MODEL: tts-1

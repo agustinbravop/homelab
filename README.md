@@ -23,7 +23,7 @@ export KUBECONFIG=kubeconfig.yaml
 kubectl get nodes
 
 # Destroy all cloud resources.
-# bash destroy.sh
+bash destroy.sh
 ```
 
 ## Architecture
@@ -37,3 +37,6 @@ kubectl create secret tls website-tls \
   --cert=origin-cert.pem \
   --key=origin-key.pem
 ```
+
+The resources in `infrastructure/` are applied at the end of `install.sh`, and the resources defined
+in `apps/` are applied by ArgoCD when they're pushed to this GitHub repo (like a GitOps workflow).
