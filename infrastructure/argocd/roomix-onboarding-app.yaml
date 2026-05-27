@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: roomix-onboarding
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/refresh: hard
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/agustinbravop/homelab
+    targetRevision: main
+    path: apps/roomix-onboarding
+    kustomize:
+      images:
+        - ghcr.io/agustinbravop/roomix-onboarding:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: roomix-onboarding
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

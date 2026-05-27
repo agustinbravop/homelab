@@ -7,3 +7,5 @@ resources:
 - argocd/website-imageupdater.yaml
 - argocd/airlock-app.yaml
 - argocd/airlock-imageupdater.yaml
+- argocd/roomix-onboarding-app.yaml
+- argocd/roomix-onboarding-imageupdater.yaml

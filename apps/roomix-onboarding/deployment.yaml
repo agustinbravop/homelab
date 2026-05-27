@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roomix-onboarding
+  labels:
+    app: roomix-onboarding
+  annotations:
+    argocd.argoproj.io/refresh: hard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: roomix-onboarding
+  template:
+    metadata:
+      labels:
+        app: roomix-onboarding
+    spec:
+      containers:
+        - name: roomix-onboarding
+          image: ghcr.io/agustinbravop/roomix-onboarding:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
