@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - website-app.yaml
+  - website-imageupdater.yaml
+  - roomix-onboarding-app.yaml
+  - roomix-onboarding-imageupdater.yaml
+  - airlock-app.yaml
+  - airlock-imageupdater.yaml
+  - apuntes-app.yaml
+  - apuntes-imageupdater.yaml

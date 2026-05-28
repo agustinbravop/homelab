@@ -2,10 +2,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- cert-manager/cluster-issuer.yaml
-- argocd/website-app.yaml
-- argocd/website-imageupdater.yaml
-- argocd/airlock-app.yaml
-- argocd/airlock-imageupdater.yaml
-- argocd/roomix-onboarding-app.yaml
-- argocd/roomix-onboarding-imageupdater.yaml
+  - cert-manager/cluster-issuer.yaml
+  - argocd/

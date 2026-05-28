@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apuntes
+  labels:
+    app: apuntes
+  annotations:
+    argocd.argoproj.io/refresh: hard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apuntes
+  template:
+    metadata:
+      labels:
+        app: apuntes
+    spec:
+      containers:
+        - name: apuntes
+          image: ghcr.io/agustinbravop/utn-vault-website:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http

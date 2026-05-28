@@ -1,0 +1,15 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: apuntes
+  namespace: argocd
+spec:
+  commonUpdateSettings:
+    updateStrategy: "digest"
+  writeBackConfig:
+    method: argocd
+  applicationRefs:
+    - namePattern: "apuntes"
+      images:
+        - alias: apuntes
+          imageName: ghcr.io/agustinbravop/utn-vault-website:latest

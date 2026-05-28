@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apuntes
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/refresh: hard
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/agustinbravop/homelab
+    targetRevision: main
+    path: apps/apuntes
+    kustomize:
+      images:
+        - ghcr.io/agustinbravop/utn-vault-website:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apuntes
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
