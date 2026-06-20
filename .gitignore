@@ -1,5 +1,12 @@
-kubeconfig.yaml
 .secrets
 .env
-*.pem
-apps/**/secret.yaml
+kubeconfig.yaml
+
+# Terraform state and variables
+*.tfstate*
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+*.tfplan

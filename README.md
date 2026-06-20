@@ -1,42 +1,53 @@
 # Kubernetes Homelab
 
-This repository contains resources and configuration for my personal Kubernetes homelab and all scripts needed to install it.
+This repository installs and configures my personal Kubernetes homelab.
 
 Tools:
 
 - `k3s`.
 - `kubectl`.
-- `az`.
+- `terraform`.
+- `tailscale`.
+- `gum`.
 
-Currently the cluster is deployed on two Azure B2 VMs using free credits that I have.
+Currently the cluster is deployed on a single Hetzner Cloud `cx23` VPS.
 
 ## Setup
 
 ```bash
-# Provision cloud resources and installs the kubernetes cluster.
+# Provision the Hetzner VPS with Terraform, bootstrap Tailscale + k3s, and fetch kubeconfig.yaml.
 bash provision.sh
-# Install helm packages and applies all YAML resources defined in this repository.
-bash install.sh
+
+# Install Helm packages and apply all YAML resources.
+bash setup-cluster.sh
 
 # Test connection to the cluster.
 export KUBECONFIG=kubeconfig.yaml
 kubectl get nodes
 
-# Destroy all cloud resources.
+# Destroy all Hetzner resources managed by Terraform.
 bash destroy.sh
 ```
 
+## Prerequisites
+
+- `terraform` installed locally.
+- `tailscale` installed locally and already connected.
+- An SSH key at `~/.ssh/id_rsa` and `~/.ssh/id_rsa.pub`.
+- A Hetzner Cloud API token.
+- A one-off Tailscale auth key.
+
+`./provision.sh` prompts for the Hetzner API token and Tailscale auth key, creates the VPS with Terraform, joins it to the Tailnet during first boot, installs k3s, and fetches `kubeconfig.yaml` over Tailscale.
+
 ## Architecture
 
-I'm using Cloudflare DNS for the `agusbravo.dev` domain that sends traffic to the cluster.
-The Origin Certificate and Origin Key are temporarily saved to the `origin-cert.pem` and `origin-key.pem` files
-to create the following secret needed by Traefik and cert-manager:
+- Cloudflare DNS sends `agusbravo.dev` traffic to the Hetzner VPS.
+- The server joins my Tailnet during bootstrap, and administrative access happens over Tailscale.
+- `ufw` only allows SSH and the Kubernetes API on `tailscale0`, and only allows public `443` from Cloudflare IP ranges.
+- `bootstrap-server.sh` installs Tailscale first, then installs a single-node k3s cluster.
+- `setup-cluster.sh` installs cert-manager, Sealed Secrets, ArgoCD, and ArgoCD Image Updater.
+- The resources in `infrastructure/` are applied by `setup-cluster.sh`, and the resources in `apps/` are synced by ArgoCD.
 
-```bash
-kubectl create secret tls website-tls \
-  --cert=origin-cert.pem \
-  --key=origin-key.pem
-```
+## Notes
 
-The resources in `infrastructure/` are applied at the end of `install.sh`, and the resources defined
-in `apps/` are applied by ArgoCD when they're pushed to this GitHub repo (like a GitOps workflow).
+- `kubeconfig.yaml` is generated automatically by `./provision.sh` and is rewritten to use the server's Tailscale IP.

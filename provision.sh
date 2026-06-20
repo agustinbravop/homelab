@@ -1,82 +1,73 @@
-# This script provisions MS Azure VMs using a student subscription.
-# Azure CLI required. Can be installed with `brew install azure-cli`.
-# See: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli.
+#!/usr/bin/env bash
 
-# Log in with a student email and pick the "Azure for students" subscription.
-az login
+set -euo pipefail
 
-# Register Azure providers that are not included by default in the student subscription.
-export RESOURCE_GROUP="website"
-export LOCATION="eastus"
-export SERVER_VM="k3s-server"
-export AGENT_VM="k3s-agent"
+# --- Dependency Check ---
+if ! command -v gum >/dev/null 2>&1; then
+    echo "Error: gum is not installed. Please install it to continue."
+    echo "See: https://github.com/charmbracelet/gum"
+    exit 1
+fi
 
-# Create a resource group for all resources.
-az group create --name $RESOURCE_GROUP --location $LOCATION
+if ! command -v terraform >/dev/null 2>&1; then
+    echo "Error: terraform is not installed. Please install it to continue."
+    echo "See: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli"
+    exit 1
+fi
 
-# Create a server VM and an agent VM following a simple k3s architecture.
-az vm create \
-  --resource-group $RESOURCE_GROUP \
-  --name $SERVER_VM \
-  --image Ubuntu2404 \
-  --size Standard_B2s \
-  --admin-username azureuser \
-  --generate-ssh-keys
-az vm create \
-  --resource-group $RESOURCE_GROUP \
-  --name $AGENT_VM \
-  --image Ubuntu2404 \
-  --size Standard_B2s \
-  --admin-username azureuser \
-  --generate-ssh-keys
+if ! command -v tailscale >/dev/null 2>&1; then
+    echo "Error: tailscale is not installed locally. Please install it to continue."
+    echo "See: https://tailscale.com/download"
+    exit 1
+fi
 
-# Open ports for HTTP, Kubernetes API, and k3s supervisor.
-az vm open-port --resource-group $RESOURCE_GROUP --name $SERVER_VM --port 6443,10250
-az vm open-port --resource-group $RESOURCE_GROUP --name $AGENT_VM --port 80,443,6443,10250
+if ! tailscale ip -4 >/dev/null 2>&1; then
+    echo "Error: tailscale is installed but not connected on this machine."
+    echo "Run 'tailscale up' locally, then try again."
+    exit 1
+fi
 
-# Install k3s on the server (--tls-san allows access from public IP).
-SERVER_PUBLIC_IP=$(az vm show --name $SERVER_VM --resource-group $RESOURCE_GROUP --show-details --query "publicIps" --output tsv)
-az vm run-command invoke \
-    --resource-group $RESOURCE_GROUP \
-    --name $SERVER_VM \
-    --command-id RunShellScript \
-    --scripts "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='server --tls-san ${SERVER_PUBLIC_IP}' sh -"
+# --- Ask for secrets ---
+gum style \
+	--border normal \
+	--margin "1 2" \
+	--padding "1 2" \
+	--border-foreground 212 "This script will provision a Hetzner server using Terraform." \
+	"It will ask for your Hetzner Cloud API token and Tailscale auth key."
 
-# Get the server token needed by the agent.
-K3S_TOKEN=$(az vm run-command invoke \
-    --resource-group $RESOURCE_GROUP \
-    --name $SERVER_VM \
-    --command-id RunShellScript \
-    --scripts "sudo cat /var/lib/rancher/k3s/server/node-token" \
-    --query "value[0].message" \
-    --output tsv \
-    | head -n -3 | tail -n +3) # Leave only stdout
+gum style --bold "Please provide your Hetzner Cloud API token."
+echo "Get token from Hetzner Cloud Console: Project > Security > API Tokens"
+HCLOUD_TOKEN=$(gum input --password --placeholder "Paste your Hetzner token here")
 
-SERVER_PRIVATE_IP=$(az vm show --name $SERVER_VM --resource-group $RESOURCE_GROUP --show-details --query "privateIps" --output tsv)
+if [ -z "$HCLOUD_TOKEN" ]; then
+    gum style --bold --foreground 212 "No API token provided. Exiting."
+    exit 1
+fi
 
-# Install k3s on the agent.
-az vm run-command invoke \
-    --resource-group $RESOURCE_GROUP \
-    --name $AGENT_VM \
-    --command-id RunShellScript \
-    --scripts "curl -sfL https://get.k3s.io | K3S_URL=https://$SERVER_PRIVATE_IP:6443 K3S_TOKEN=$K3S_TOKEN sh -"
+gum style --bold "Please provide your Tailscale Auth Key."
+echo "Get a one-off auth key from Tailscale Admin Console: Settings > Keys"
+TS_AUTH_KEY=$(gum input --password --placeholder "Paste your tskey-auth-... key here")
 
-# kubectl is required. Can be installed with brew install kubectl.
-# See: https://kubernetes.io/docs/tasks/tools/#kubectl.
+if [ -z "$TS_AUTH_KEY" ]; then
+    gum style --bold --foreground 212 "No Tailscale auth key provided. Exiting."
+    exit 1
+fi
 
-# Get the server kubeconfig.yaml (admin superuser).
-az vm run-command invoke \
-    --resource-group $RESOURCE_GROUP \
-    --name $SERVER_VM \
-    --command-id RunShellScript \
-    --scripts "sudo cat /etc/rancher/k3s/k3s.yaml | sudo base64" \
-    --query "value[0].message" \
-    --output tsv \
-    | head -n -3 \
-    | tail -n +3 \
-    | base64 --decode \
-    | sed "s/127.0.0.1/$SERVER_PUBLIC_IP/" > kubeconfig.yaml
+# --- Run Terraform ---
+echo "Running terraform init"
+terraform init
 
-# Test connection to the cluster.
-export KUBECONFIG=kubeconfig.yaml
-kubectl get nodes
+echo "Running terraform apply"
+
+# Pass the token as a variable on the command line.
+# Use -auto-approve to avoid the interactive confirmation prompt from Terraform.
+terraform apply -auto-approve \
+  -var="hcloud_token=$HCLOUD_TOKEN" \
+  -var="tailscale_auth_key=$TS_AUTH_KEY"
+
+gum style \
+	--border normal \
+	--margin "1 2" \
+	--padding "1 2" \
+	--border-foreground 212 "✅ Provisioning complete!" \
+  "kubeconfig.yaml was fetched over Tailscale and is ready to use."

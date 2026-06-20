@@ -3,7 +3,7 @@ set -e
 
 # This script installs all helm charts on the cluster, then applies all YAML resources defined in kustomization.yaml.
 
-echo "Using ./kubeconfig.yaml to connect to the server..."
+echo "Using ./kubeconfig.yaml to connect to the cluster..."
 export KUBECONFIG=kubeconfig.yaml
 kubectl get nodes
 
@@ -18,7 +18,7 @@ helm upgrade --install cert-manager jetstack/cert-manager \
     --wait --timeout 300s
 
 echo "Installing Sealed Secrets via Helm..."
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
 helm repo update
 helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
   --namespace kube-system \
@@ -47,7 +47,7 @@ kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -
 echo "ArgoCD installed!"
 echo "Get password: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d"
 
-echo "=== Configuring Secrets ==="
+echo "Configuring Secrets"
 read -rsp "Enter OPENAI_API_KEY for airlock: " OPENAI_API_KEY
 echo ""
 
