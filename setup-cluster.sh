@@ -50,6 +50,8 @@ echo "Get password: kubectl -n argocd get secret argocd-initial-admin-secret -o 
 echo "Configuring Secrets"
 read -rsp "Enter OPENAI_API_KEY for airlock: " OPENAI_API_KEY
 echo ""
+read -rsp "Enter Cloudflare API token for cert-manager: " CLOUDFLARE_API_TOKEN
+echo ""
 
 echo "Sealing airlock secret..."
 kubectl create secret generic airlock \
@@ -64,6 +66,21 @@ kubectl create secret generic airlock \
 unset OPENAI_API_KEY
 echo "Sealed secret written to apps/airlock/sealedsecret.yaml"
 echo "IMPORTANT: commit and push apps/airlock/sealedsecret.yaml so ArgoCD can apply it."
+
+echo "Sealing Cloudflare API token for cert-manager..."
+kubectl create namespace cert-manager || true
+kubectl create secret generic cloudflare-api-token \
+  --namespace=cert-manager \
+  --from-literal=api-token="$CLOUDFLARE_API_TOKEN" \
+  --dry-run=client -o yaml \
+  | kubeseal \
+    --controller-name=sealed-secrets \
+    --controller-namespace=kube-system \
+    --format yaml \
+    > infrastructure/cert-manager/sealedsecret.yaml
+unset CLOUDFLARE_API_TOKEN
+echo "Sealed secret written to infrastructure/cert-manager/sealedsecret.yaml"
+echo "IMPORTANT: commit and push infrastructure/cert-manager/sealedsecret.yaml before running kubectl apply -k . anywhere else."
 
 echo "Deploying resources defined in kustomization.yaml..."
 kubectl apply -k .

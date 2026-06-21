@@ -53,7 +53,7 @@ resource "hcloud_server" "homelab_server" {
   location    = "hel1"
   ssh_keys    = [hcloud_ssh_key.default.id]
   # Inject the Tailscale auth key into the first-boot bootstrap script.
-  user_data   = replace(file("${path.module}/bootstrap-server.sh"), "__TAILSCALE_AUTH_KEY__", var.tailscale_auth_key)
+  user_data    = replace(file("${path.module}/bootstrap-server.sh"), "__TAILSCALE_AUTH_KEY__", var.tailscale_auth_key)
   firewall_ids = [hcloud_firewall.secure_firewall.id]
 
   lifecycle {
@@ -71,7 +71,7 @@ output "ipv4_address" {
 resource "null_resource" "kubeconfig_fetcher" {
   depends_on = [hcloud_server.homelab_server]
 
-provisioner "local-exec" {
+  provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = <<EOT
 set -e
