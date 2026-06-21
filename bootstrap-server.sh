@@ -1,5 +1,8 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+# This script bootstraps a fresh server with Tailscale, k3s, and the final firewall rules.
+# It runs on first boot via Terraform on the provisioned server, NOT on your local machine.
 
 export DEBIAN_FRONTEND=noninteractive
 

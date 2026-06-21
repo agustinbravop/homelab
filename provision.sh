@@ -2,7 +2,10 @@
 
 set -euo pipefail
 
-# --- Dependency Check ---
+# This script provisions the Hetzner server with Terraform and bootstraps k3s over Tailscale.
+# It leaves a ready-to-use kubeconfig.yaml in the repo root.
+
+# Dependency check
 if ! command -v gum >/dev/null 2>&1; then
     echo "Error: gum is not installed. Please install it to continue."
     echo "See: https://github.com/charmbracelet/gum"
@@ -27,7 +30,7 @@ if ! tailscale ip -4 >/dev/null 2>&1; then
     exit 1
 fi
 
-# --- Ask for secrets ---
+# Ask for secrets
 gum style \
 	--border normal \
 	--margin "1 2" \
@@ -53,14 +56,12 @@ if [ -z "$TS_AUTH_KEY" ]; then
     exit 1
 fi
 
-# --- Run Terraform ---
 echo "Running terraform init"
 terraform init
 
-echo "Running terraform apply"
-
 # Pass the token as a variable on the command line.
 # Use -auto-approve to avoid the interactive confirmation prompt from Terraform.
+echo "Running terraform apply"
 terraform apply -auto-approve \
   -var="hcloud_token=$HCLOUD_TOKEN" \
   -var="tailscale_auth_key=$TS_AUTH_KEY"

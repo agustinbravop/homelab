@@ -2,27 +2,18 @@
 
 set -euo pipefail
 
+# This script rewrites existing Cloudflare A records under the main zone to one IPv4.
+# It defaults the target IP from Terraform output and shows the records before and after.
+
 ZONE_NAME="agusbravo.dev"
 
-if ! command -v curl >/dev/null 2>&1; then
-  echo "Error: curl is not installed."
-  exit 1
-fi
-
-if ! command -v jq >/dev/null 2>&1; then
-  echo "Error: jq is not installed."
-  exit 1
-fi
-
-if ! command -v gum >/dev/null 2>&1; then
-  echo "Error: gum is not installed."
-  exit 1
-fi
-
-if ! command -v terraform >/dev/null 2>&1; then
-  echo "Error: terraform is not installed."
-  exit 1
-fi
+# Dependency check
+for cmd in curl jq gum terraform; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: $cmd is not installed."
+    exit 1
+  fi
+done
 
 gum style \
   --border normal \
