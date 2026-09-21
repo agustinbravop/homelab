@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: fivestacks
+  namespace: argocd
+spec:
+  commonUpdateSettings:
+    updateStrategy: digest
+  writeBackConfig:
+    method: argocd
+  applicationRefs:
+    - namePattern: fivestacks
+      images:
+        - alias: fivestacks
+          imageName: ghcr.io/agustinbravop/fivestacks:latest

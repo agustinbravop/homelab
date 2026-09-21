@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fivestacks
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/agustinbravop/homelab
+    targetRevision: main
+    path: apps/fivestacks
+    kustomize:
+      images:
+        - ghcr.io/agustinbravop/fivestacks:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fivestacks
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

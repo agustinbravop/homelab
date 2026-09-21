@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fivestacks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fivestacks
+  template:
+    metadata:
+      labels:
+        app: fivestacks
+    spec:
+      containers:
+        - name: fivestacks
+          image: ghcr.io/agustinbravop/fivestacks:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http

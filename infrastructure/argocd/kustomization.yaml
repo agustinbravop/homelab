@@ -9,3 +9,5 @@ resources:
   - airlock-imageupdater.yaml
   - apuntes-app.yaml
   - apuntes-imageupdater.yaml
+  - fivestacks-app.yaml
+  - fivestacks-imageupdater.yaml
