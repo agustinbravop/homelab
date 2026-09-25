@@ -1,4 +1,147 @@
-# In this file we will override the default values of the kube-prometheus-stack chart
-# For now, we will just disable grafana as we will install it separately
-grafana:
+defaultRules:
+  create: false
+
+alertmanager:
   enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+grafana:
+  defaultDashboardsEnabled: false
+  forceDeployDatasources: true
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+      - grafana.agusbravo.dev
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.agusbravo.dev
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+      org_role: Viewer
+      hide_version: true
+    dashboards:
+      default_home_dashboard_path: /var/lib/grafana/dashboards/homelab/homelab-overview.json
+    security:
+      cookie_secure: true
+    users:
+      viewers_can_edit: false
+  persistence:
+    enabled: true
+    size: 256Mi
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: homelab
+          orgId: 1
+          folder: Homelab
+          type: file
+          disableDeletion: true
+          editable: false
+          options:
+            path: /var/lib/grafana/dashboards/homelab
+  dashboardsConfigMaps:
+    homelab: grafana-dashboard-homelab-overview
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      access: proxy
+      url: http://loki.monitoring.svc.cluster.local:3100
+      jsonData:
+        maxLines: 500
+  deleteDatasources:
+    - name: Alertmanager
+      orgId: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  sidecar:
+    dashboards:
+      enabled: false
+    datasources:
+      enabled: false
+      alertmanager:
+        enabled: false
+  extraConfigmapMounts:
+    - name: datasources
+      mountPath: /etc/grafana/provisioning/datasources
+      configMap: kube-prometheus-stack-grafana-datasource
+      readOnly: true
+
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    retention: 7d
+    retentionSize: 4GB
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorNamespaceSelector: {}
+    probeSelectorNilUsesHelmValues: false
+    probeNamespaceSelector: {}
+    resources:
+      requests:
+        cpu: 100m
+        memory: 384Mi
+      limits:
+        cpu: 500m
+        memory: 640Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi

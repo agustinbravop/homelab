@@ -34,7 +34,7 @@ gum style \
   --border normal \
   --margin "1 2" \
   --padding "1 2" \
-  --border-foreground 212 "This script installs cert-manager, Sealed Secrets, ArgoCD, and ArgoCD Image Updater." \
+  --border-foreground 212 "This script installs cert-manager, Sealed Secrets, ArgoCD, Image Updater, and monitoring." \
   "It regenerates ${AIRLOCK_SECRET#"${ROOT}/"} and ${CERT_MANAGER_SECRET#"${ROOT}/"}."
 
 kubectl get nodes >/dev/null
@@ -44,6 +44,9 @@ echo "Adding Helm repositories"
 helm repo add jetstack https://charts.jetstack.io
 helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
 helm repo add argo https://argoproj.github.io/argo-helm
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add grafana-community https://grafana-community.github.io/helm-charts
 helm repo update
 
 if ! kubectl get ns cert-manager >/dev/null 2>&1; then
@@ -52,6 +55,10 @@ fi
 
 if ! kubectl get ns argocd >/dev/null 2>&1; then
   kubectl create ns argocd
+fi
+
+if ! kubectl get ns monitoring >/dev/null 2>&1; then
+  kubectl create ns monitoring
 fi
 
 echo "Installing cert-manager"
@@ -82,6 +89,39 @@ echo "Installing ArgoCD Image Updater"
 helm upgrade --install argocd-image-updater argo/argocd-image-updater \
   --namespace argocd \
   --version 1.1.5 \
+  --wait \
+  --timeout 300s
+
+echo "Installing Prometheus and Grafana"
+kubectl apply -k "${ROOT}/infrastructure/prometheus"
+helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --version 91.5.2 \
+  --values "${ROOT}/infrastructure/prometheus/values.yaml" \
+  --wait \
+  --timeout 600s
+
+echo "Installing Blackbox Exporter"
+helm upgrade --install blackbox-exporter prometheus-community/prometheus-blackbox-exporter \
+  --namespace monitoring \
+  --version 11.19.1 \
+  --values "${ROOT}/infrastructure/prometheus/blackbox-values.yaml" \
+  --wait \
+  --timeout 300s
+
+echo "Installing Loki"
+helm upgrade --install loki grafana-community/loki \
+  --namespace monitoring \
+  --version 18.13.5 \
+  --values "${ROOT}/infrastructure/prometheus/loki-values.yaml" \
+  --wait \
+  --timeout 600s
+
+echo "Installing Alloy"
+helm upgrade --install alloy grafana/alloy \
+  --namespace monitoring \
+  --version 1.12.1 \
+  --values "${ROOT}/infrastructure/prometheus/alloy-values.yaml" \
   --wait \
   --timeout 300s
 
@@ -142,4 +182,6 @@ gum style \
   --padding "1 2" \
   --border-foreground 212 "Cluster setup complete." \
   "ArgoCD password: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d" \
+  "Grafana: https://grafana.agusbravo.dev" \
+  "Grafana password: kubectl -n monitoring get secret kube-prometheus-stack-grafana -o jsonpath='{.data.admin-password}' | base64 -d" \
   "Commit ${AIRLOCK_SECRET#"${ROOT}/"} and ${CERT_MANAGER_SECRET#"${ROOT}/"}."

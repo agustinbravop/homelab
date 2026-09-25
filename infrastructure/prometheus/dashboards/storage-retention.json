@@ -1,0 +1,116 @@
+{
+  "annotations": {"list": []},
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+      "id": 1,
+      "options": {
+        "code": {"language": "plaintext", "showLineNumbers": false, "showMiniMap": false},
+        "content": "### Retention contract\n**Metrics:** 7 days or 4 GB, whichever is reached first.  **Access logs:** 72 hours.\n\n> `local-path` PVC sizes are allocation requests, not enforced quotas. Prometheus, Loki, and Grafana consume the node's shared root disk.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "12.2.0",
+      "title": "How storage works",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "Space available on the shared root filesystem that backs local-path volumes.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "orange", "value": 5368709120}, {"color": "green", "value": 10737418240}]}, "unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 4},
+      "id": 2,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showPercentChange": false, "textMode": "value", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "node_filesystem_avail_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}", "legendFormat": "Free", "range": true, "refId": "A"}],
+      "title": "Root disk free",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "Prometheus TSDB blocks as a percentage of their configured 4 GB retention limit. WAL usage is shown separately below.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "decimals": 1, "max": 100, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 70}, {"color": "red", "value": 85}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 6, "y": 4},
+      "id": 3,
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showPercentChange": false, "textMode": "value", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "100 * prometheus_tsdb_storage_blocks_bytes / prometheus_tsdb_retention_limit_bytes", "legendFormat": "Used", "range": true, "refId": "A"}],
+      "title": "Metrics retention budget",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "Age of the oldest sample currently retained by Prometheus.",
+      "fieldConfig": {"defaults": {"color": {"fixedColor": "blue", "mode": "fixed"}, "decimals": 1, "unit": "s"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 12, "y": 4},
+      "id": 4,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showPercentChange": false, "textMode": "value", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "time() - prometheus_tsdb_lowest_timestamp_seconds", "legendFormat": "History", "range": true, "refId": "A"}],
+      "title": "Metrics history retained",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "loki"},
+      "description": "Uncompressed Traefik access-log bytes received during the last 24 hours; this is ingest volume, not disk usage.",
+      "fieldConfig": {"defaults": {"color": {"fixedColor": "blue", "mode": "fixed"}, "decimals": 1, "unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 18, "y": 4},
+      "id": 5,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showPercentChange": false, "textMode": "value", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "sum(bytes_over_time({namespace=\"kube-system\",container=\"traefik\"}[24h]))", "queryType": "instant", "refId": "A"}],
+      "title": "Access logs, 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "Requested sizes describe intended allocation only; local-path does not enforce these as quotas.",
+      "fieldConfig": {"defaults": {"color": {"mode": "continuous-GrYlRd"}, "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 8, "x": 0, "y": 9},
+      "id": 6,
+      "options": {"displayMode": "lcd", "maxVizHeight": 300, "minVizHeight": 16, "minVizWidth": 8, "namePlacement": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "sizing": "auto", "valueMode": "color"},
+      "targets": [
+        {"editorMode": "code", "expr": "kube_persistentvolumeclaim_resource_requests_storage_bytes{namespace=\"monitoring\",persistentvolumeclaim=\"prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-0\"}", "legendFormat": "Prometheus", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "kube_persistentvolumeclaim_resource_requests_storage_bytes{namespace=\"monitoring\",persistentvolumeclaim=\"storage-loki-0\"}", "legendFormat": "Loki", "range": true, "refId": "B"},
+        {"editorMode": "code", "expr": "kube_persistentvolumeclaim_resource_requests_storage_bytes{namespace=\"monitoring\",persistentvolumeclaim=\"kube-prometheus-stack-grafana\"}", "legendFormat": "Grafana", "range": true, "refId": "C"}
+      ],
+      "title": "Requested PVC sizes (not quotas)",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "Current on-disk Prometheus data split between compacted blocks and the write-ahead log.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 8, "x": 8, "y": 9},
+      "id": 7,
+      "options": {"displayMode": "gradient", "maxVizHeight": 300, "minVizHeight": 16, "minVizWidth": 8, "namePlacement": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "sizing": "auto", "valueMode": "color"},
+      "targets": [
+        {"editorMode": "code", "expr": "prometheus_tsdb_storage_blocks_bytes", "legendFormat": "Blocks", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "prometheus_tsdb_wal_storage_size_bytes", "legendFormat": "WAL", "range": true, "refId": "B"}
+      ],
+      "title": "Metrics storage composition",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "loki"},
+      "description": "Rate of uncompressed Traefik access-log bytes entering Loki.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15, "gradientMode": "opacity", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 4, "scaleDistribution": {"type": "linear"}, "showPoints": "never", "spanNulls": false, "stacking": {"group": "A", "mode": "none"}, "thresholdsStyle": {"mode": "off"}}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 8, "x": 16, "y": 9},
+      "id": 8,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}},
+      "targets": [{"editorMode": "code", "expr": "sum(bytes_rate({namespace=\"kube-system\",container=\"traefik\"}[$__auto]))", "legendFormat": "Access logs", "queryType": "range", "refId": "A"}],
+      "title": "Log ingest rate",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 41,
+  "tags": ["homelab", "storage", "retention"],
+  "templating": {"list": []},
+  "time": {"from": "now-24h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Storage & Retention",
+  "uid": "storage-retention",
+  "version": 2
+}

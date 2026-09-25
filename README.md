@@ -9,6 +9,8 @@ Tools:
 - `terraform`.
 - `tailscale`.
 - `gum`.
+- `prometheus`.
+- `grafana`.
 
 Currently the cluster is deployed on a single Hetzner Cloud `cx23` VPS.
 
@@ -53,6 +55,10 @@ bash update-dns-records.sh
 - `ufw` only allows SSH and the Kubernetes API on `tailscale0`, and only allows public `443` from Cloudflare IP ranges.
 - `bootstrap-server.sh` installs Tailscale first, then installs a single-node k3s cluster.
 - `setup-cluster.sh` installs cert-manager, Sealed Secrets, ArgoCD, and ArgoCD Image Updater.
+- `setup-cluster.sh` installs a resource-limited Prometheus and Grafana stack in the `monitoring` namespace.
+- Blackbox Exporter checks each public application every minute for availability, latency, HTTP status, and certificate expiry.
+- Traefik emits request metrics and JSON access logs; Alloy sends only those access logs to a three-day Loki store.
+- `https://grafana.agusbravo.dev` has anonymous Viewer access, including queries to its Prometheus and Loki datasources; administrator access still requires the generated password.
 - TLS certificates are issued by cert-manager through Cloudflare DNS-01, so the origin only needs `443` exposed to Cloudflare.
 - `update-dns-records.sh` shows the current Cloudflare A records for `agusbravo.dev`, defaults the target IPv4 from `terraform output -raw ipv4_address`, and rewrites the zone's existing A records to that value.
 - `setup-cluster.sh` generates `infrastructure/cert-manager/sealedsecret.yaml`; that file is a required input to `kubectl apply -k .` and should be committed once generated.
@@ -61,3 +67,4 @@ bash update-dns-records.sh
 ## Notes
 
 - `kubeconfig.yaml` is generated automatically by `./provision.sh` and is rewritten to use the server's Tailscale IP.
+- Prometheus retains at most seven days or 4 GB of TSDB blocks, whichever limit is reached first; its WAL uses additional disk space.

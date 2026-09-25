@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+
+configMapGenerator:
+  - name: grafana-dashboard-homelab-overview
+    files:
+      - homelab-overview.json=dashboards/homelab-overview.json
+      - application-reliability.json=dashboards/application-reliability.json
+      - workloads.json=dashboards/workloads.json
+      - ingress-traffic.json=dashboards/ingress-traffic.json
+      - storage-retention.json=dashboards/storage-retention.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+
+generatorOptions:
+  disableNameSuffixHash: true

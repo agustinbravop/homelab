@@ -1,0 +1,25 @@
+resources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    cpu: 100m
+    memory: 32Mi
+
+serviceMonitor:
+  enabled: true
+  defaults:
+    interval: 60s
+    scrapeTimeout: 10s
+    module: http_2xx
+  targets:
+    - name: website
+      url: https://agusbravo.dev
+    - name: airlock
+      url: https://airlock.agusbravo.dev
+    - name: apuntes
+      url: https://apuntes.agusbravo.dev
+    - name: fivestacks
+      url: https://fivestacks.agusbravo.dev
+    - name: roomix-onboarding
+      url: https://roomix-onboarding.agusbravo.dev

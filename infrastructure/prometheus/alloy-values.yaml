@@ -1,0 +1,85 @@
+alloy:
+  enableReporting: false
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  configMap:
+    content: |-
+      discovery.kubernetes "traefik" {
+        role = "pod"
+
+        namespaces {
+          names = ["kube-system"]
+        }
+
+        selectors {
+          role  = "pod"
+          label = "app.kubernetes.io/name=traefik"
+        }
+      }
+
+      discovery.relabel "traefik" {
+        targets = discovery.kubernetes.traefik.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          regex         = "traefik"
+          action        = "keep"
+        }
+      }
+
+      loki.source.kubernetes "traefik" {
+        targets    = discovery.relabel.traefik.output
+        forward_to = [loki.process.traefik.receiver]
+      }
+
+      loki.process "traefik" {
+        stage.static_labels {
+          values = {
+            cluster = "homelab",
+          }
+        }
+
+        forward_to = [loki.write.default.receiver]
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
+
+controller:
+  type: deployment
+  replicas: 1
+
+configReloader:
+  enabled: false
+
+rbac:
+  create: true
+  namespaces:
+    - kube-system
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "pods/log"]
+      verbs: ["get", "list", "watch"]

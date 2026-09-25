@@ -4,4 +4,6 @@ kind: Kustomization
 resources:
   - cert-manager/cluster-issuer.yaml
   - cert-manager/sealedsecret.yaml
+  - traefik-config.yaml
   - argocd/
+  - prometheus/

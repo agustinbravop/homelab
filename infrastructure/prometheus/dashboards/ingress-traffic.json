@@ -1,0 +1,62 @@
+{
+  "annotations": {"list": []},
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "95% of application requests complete within this duration over the last five minutes.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "decimals": 2, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 0.5}, {"color": "red", "value": 1}]}, "unit": "s"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showPercentChange": false, "textMode": "value", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "histogram_quantile(0.95, sum by (le) (rate(traefik_service_request_duration_seconds_bucket{exported_service!~\"monitoring-.*\"}[5m])))", "legendFormat": "p95", "range": true, "refId": "A"}],
+      "title": "p95 response time",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "loki"},
+      "description": "Application requests that returned an HTTP 5xx response during the selected time range.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "decimals": 0, "mappings": [{"options": {"0": {"color": "green", "text": "NONE"}}, "type": "value"}], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "vertical", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showPercentChange": false, "textMode": "value", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "sum(count_over_time({namespace=\"kube-system\",container=\"traefik\"} | json | __error__=\"\" | ServiceName!~\"monitoring-.*\" | DownstreamStatus >= 500 [$__range])) or vector(0)", "queryType": "instant", "refId": "A"}],
+      "title": "Server errors",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "loki"},
+      "description": "Requests reaching each application through Traefik.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 12, "gradientMode": "none", "hideFrom": {"legend": false, "tooltip": false, "viz": false}, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 4, "scaleDistribution": {"type": "linear"}, "showPoints": "never", "spanNulls": false, "stacking": {"group": "A", "mode": "none"}, "thresholdsStyle": {"mode": "off"}}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "reqps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 4},
+      "id": 3,
+      "options": {"legend": {"calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"hideZeros": false, "mode": "multi", "sort": "desc"}},
+      "targets": [{"editorMode": "code", "expr": "sum by (RequestHost) (rate({namespace=\"kube-system\",container=\"traefik\"} | json | __error__=\"\" | ServiceName!~\"monitoring-.*\" [$__auto]))", "legendFormat": "{{RequestHost}}", "queryType": "range", "refId": "A"}],
+      "title": "Application traffic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "loki", "uid": "loki"},
+      "description": "Most recent server errors with the application, method, path, and response code.",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 13},
+      "id": 4,
+      "options": {"dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": false, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true},
+      "targets": [{"editorMode": "code", "expr": "{namespace=\"kube-system\",container=\"traefik\"} | json | __error__=\"\" | ServiceName!~\"monitoring-.*\" | DownstreamStatus >= 500 | line_format \"{{.RequestHost}}  {{.RequestMethod}} {{.RequestPath}}  -> {{.DownstreamStatus}}\"", "queryType": "range", "refId": "A"}],
+      "title": "Recent server errors",
+      "type": "logs"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["homelab", "traefik", "loki"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Ingress Traffic",
+  "uid": "ingress-traffic",
+  "version": 2
+}
