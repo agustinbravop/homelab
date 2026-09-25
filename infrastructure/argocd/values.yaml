@@ -1,0 +1,28 @@
+configs:
+  cm:
+    url: https://argocd.agusbravo.dev
+    users.anonymous.enabled: "true"
+  params:
+    server.insecure: "true"
+  rbac:
+    policy.default: role:public
+    policy.csv: |
+      p, role:public, applications, get, default/website, allow
+      p, role:public, applications, get, default/roomix-onboarding, allow
+      p, role:public, applications, get, default/airlock, allow
+      p, role:public, applications, get, default/apuntes, allow
+      p, role:public, applications, get, default/fivestacks, allow
+      p, role:public, logs, get, default/website, allow
+      p, role:public, logs, get, default/roomix-onboarding, allow
+      p, role:public, logs, get, default/apuntes, allow
+      p, role:public, logs, get, default/fivestacks, allow
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: argocd.agusbravo.dev
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    tls: true

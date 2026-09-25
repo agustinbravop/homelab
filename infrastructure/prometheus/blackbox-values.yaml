@@ -23,3 +23,5 @@ serviceMonitor:
       url: https://fivestacks.agusbravo.dev
     - name: roomix-onboarding
       url: https://roomix-onboarding.agusbravo.dev
+    - name: argocd
+      url: https://argocd.agusbravo.dev

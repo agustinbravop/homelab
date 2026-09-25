@@ -59,6 +59,7 @@ bash update-dns-records.sh
 - Blackbox Exporter checks each public application every minute for availability, latency, HTTP status, and certificate expiry.
 - Traefik emits request metrics and JSON access logs; Alloy sends only those access logs to a three-day Loki store.
 - `https://grafana.agusbravo.dev` has anonymous Viewer access, including queries to its Prometheus and Loki datasources; administrator access still requires the generated password.
+- `https://argocd.agusbravo.dev` has anonymous access limited to viewing the five public applications and logs from the four static sites; Airlock logs, repositories, clusters, accounts, terminal access, and all mutations remain unavailable.
 - TLS certificates are issued by cert-manager through Cloudflare DNS-01, so the origin only needs `443` exposed to Cloudflare.
 - `update-dns-records.sh` shows the current Cloudflare A records for `agusbravo.dev`, defaults the target IPv4 from `terraform output -raw ipv4_address`, and rewrites the zone's existing A records to that value.
 - `setup-cluster.sh` generates `infrastructure/cert-manager/sealedsecret.yaml`; that file is a required input to `kubectl apply -k .` and should be committed once generated.
