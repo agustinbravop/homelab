@@ -25,3 +25,5 @@ serviceMonitor:
       url: https://roomix-onboarding.agusbravo.dev
     - name: argocd
       url: https://argocd.agusbravo.dev
+    - name: status
+      url: https://status.agusbravo.dev

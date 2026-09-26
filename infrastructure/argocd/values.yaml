@@ -12,10 +12,12 @@ configs:
       p, role:public, applications, get, default/airlock, allow
       p, role:public, applications, get, default/apuntes, allow
       p, role:public, applications, get, default/fivestacks, allow
+      p, role:public, applications, get, default/gatus, allow
       p, role:public, logs, get, default/website, allow
       p, role:public, logs, get, default/roomix-onboarding, allow
       p, role:public, logs, get, default/apuntes, allow
       p, role:public, logs, get, default/fivestacks, allow
+      p, role:public, logs, get, default/gatus, allow
 
 server:
   ingress:

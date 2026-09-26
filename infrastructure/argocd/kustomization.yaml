@@ -11,3 +11,4 @@ resources:
   - apuntes-imageupdater.yaml
   - fivestacks-app.yaml
   - fivestacks-imageupdater.yaml
+  - gatus-app.yaml

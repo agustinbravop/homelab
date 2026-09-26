@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gatus
+data:
+  config.yaml: |
+    ui:
+      title: Agus Bravo Status
+      header: Platform Status
+      dashboard-heading: Service Health
+      dashboard-subheading: Live checks from the Kubernetes platform
+      description: Live availability and latency for services on the Agus Bravo platform
+      logo: https://agusbravo.dev/favicon.svg
+      link: https://agusbravo.dev
+      favicon:
+        default: https://agusbravo.dev/favicon.svg
+        size16x16: https://agusbravo.dev/favicon-96x96.png
+        size32x32: https://agusbravo.dev/favicon-96x96.png
+      buttons:
+        - name: Portfolio
+          link: https://agusbravo.dev
+        - name: Metrics & Logs
+          link: https://grafana.agusbravo.dev
+        - name: Deployments
+          link: https://argocd.agusbravo.dev
+      default-sort-by: name
+      default-filter-by: none
+
+    storage:
+      type: sqlite
+      path: /data/gatus.db
+      caching: false
+      maximum-number-of-results: 288
+      maximum-number-of-events: 20
+
+    endpoints:
+      - name: Website
+        url: https://agusbravo.dev
+        interval: 5m
+        conditions: &public-conditions
+          - "[STATUS] == 200"
+          - "[RESPONSE_TIME] < 2000"
+          - "[CERTIFICATE_EXPIRATION] > 168h"
+      - name: Airlock
+        url: https://airlock.agusbravo.dev
+        interval: 5m
+        conditions: *public-conditions
+      - name: Apuntes
+        url: https://apuntes.agusbravo.dev
+        interval: 5m
+        conditions: *public-conditions
+      - name: Five Stacks
+        url: https://fivestacks.agusbravo.dev
+        interval: 5m
+        conditions: *public-conditions
+      - name: Roomix Onboarding
+        url: https://roomix-onboarding.agusbravo.dev
+        interval: 5m
+        conditions: *public-conditions
+      - name: Argo CD
+        url: https://argocd.agusbravo.dev
+        interval: 5m
+        conditions: *public-conditions
+      - name: Grafana
+        url: https://grafana.agusbravo.dev
+        interval: 5m
+        conditions: *public-conditions
