@@ -5,6 +5,8 @@ resources:
   - website-imageupdater.yaml
   - roomix-onboarding-app.yaml
   - roomix-onboarding-imageupdater.yaml
+  - milloclips-app.yaml
+  - milloclips-imageupdater.yaml
   - airlock-app.yaml
   - airlock-imageupdater.yaml
   - apuntes-app.yaml

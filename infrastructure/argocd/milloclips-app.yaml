@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: milloclips
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/refresh: hard
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/agustinbravop/homelab
+    targetRevision: main
+    path: apps/milloclips
+    kustomize:
+      images:
+        - ghcr.io/agustinbravop/milloclips:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: milloclips
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

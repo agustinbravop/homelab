@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: milloclips
+  labels:
+    app: milloclips
+  annotations:
+    argocd.argoproj.io/refresh: hard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: milloclips
+  template:
+    metadata:
+      labels:
+        app: milloclips
+    spec:
+      containers:
+        - name: milloclips
+          image: ghcr.io/agustinbravop/milloclips:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http

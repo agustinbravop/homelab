@@ -1,0 +1,15 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: milloclips
+  namespace: argocd
+spec:
+  commonUpdateSettings:
+    updateStrategy: "digest"
+  writeBackConfig:
+    method: argocd
+  applicationRefs:
+    - namePattern: "milloclips"
+      images:
+        - alias: milloclips
+          imageName: ghcr.io/agustinbravop/milloclips:latest
