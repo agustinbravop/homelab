@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: commentlookout
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/agustinbravop/homelab
+    targetRevision: main
+    path: apps/commentlookout
+    kustomize:
+      images:
+        - ghcr.io/agustinbravop/commentlookout:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: commentlookout
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

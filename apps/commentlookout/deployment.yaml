@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commentlookout
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: commentlookout
+  template:
+    metadata:
+      labels:
+        app: commentlookout
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: commentlookout
+          image: ghcr.io/agustinbravop/commentlookout:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          envFrom:
+            - secretRef:
+                name: commentlookout
+          env:
+            - name: DATABASE_PATH
+              value: /app/data/commentlookout.sqlite
+            - name: APP_ORIGIN
+              value: https://commentlookout.agusbravo.dev
+            - name: GOOGLE_REDIRECT_URI
+              value: https://commentlookout.agusbravo.dev/api/auth/google/callback
+            - name: ZERNIO_REDIRECT_URI
+              value: https://commentlookout.agusbravo.dev/api/zernio/callback
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: commentlookout

@@ -14,3 +14,5 @@ resources:
   - fivestacks-app.yaml
   - fivestacks-imageupdater.yaml
   - gatus-app.yaml
+  - commentlookout-app.yaml
+  - commentlookout-imageupdater.yaml

@@ -1,0 +1,15 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: commentlookout
+  namespace: argocd
+spec:
+  commonUpdateSettings:
+    updateStrategy: digest
+  writeBackConfig:
+    method: argocd
+  applicationRefs:
+    - namePattern: commentlookout
+      images:
+        - alias: commentlookout
+          imageName: ghcr.io/agustinbravop/commentlookout:latest
