@@ -42,5 +42,39 @@ To register the app, push the homelab changes and apply only
 `infrastructure/argocd/riftregulars-{app,imageupdater}.yaml`. Verify the rollout,
 cert-manager certificate, HTTPS homepage, legal pages, all nine featured links,
 same-origin error handling, read-only/private paths and pod/node memory before
-calling deployment complete. The Gatus target follows its existing Argo app's
-normal configuration sync.
+calling deployment complete. Gatus currently uses its existing ConfigMap rather
+than a registered Argo Application. Apply only `apps/gatus/configmap.yaml` in the
+`gatus` namespace after checking the diff; it reloads the target without a pod
+restart.
+
+## Verified deployment (2026-11-25)
+
+- Live URL: **https://riftregulars.agusbravo.dev**.
+- GitHub Actions run `45669110696` successfully built/published source revision
+  `dc3f63316423226612127510ac7ec062a7b14dc2`.
+- Running image matches the public `latest` OCI index
+  `sha256:eb7d82fcfb3fb6679c68d95ed05f3be44ae340f2bbf975af0ee2a59144c24d46`.
+  Image Updater pinned this digest through Argo; one ready replica, zero restarts.
+- Argo reported Synced/Healthy. The cert-manager certificate is Ready and expires
+  on 2027-02-23. Public HTTPS verification succeeded.
+- Homepage SSR exposes all nine featured links; all nine profiles returned
+  encounter tables. Both legal pages are prerendered assets. The expected contact
+  exists in origin HTML; Cloudflare obfuscates email links at the edge.
+- Snapshot verification found 27 files with UID 1000/mode 0600, matching card
+  stamps and 6,041 indexed account-games. Both root and snapshot mounts reject
+  writes. No private checkpoints exist on the PVC.
+- Static assets and probe returned 200; filesystem, environment, source/build
+  internals and checkpoint URL attempts returned 404.
+- API origin/content-type/input checks returned 403/415/400 JSON errors.
+  A bounded invalid-input burst produced 400/429 responses, without Riot calls.
+  One discovery-only lookup succeeded with HTTP 200; no match IDs or details
+  were requested. Key validity is only verified at that moment.
+- Gatus loaded the target and passed status 200, response time under two seconds,
+  and certificate validity over seven days, without an unrelated pod rollout.
+- Final local check had zero errors/warnings; all 116 Node tests and the Bun
+  production build passed. No browser or sustained-load test was performed.
+- Point-in-time metrics after verification: pod 33Mi/1m; node 3,147Mi (82%)/466m;
+  Prometheus MemAvailable about 387Mi. These are not peak measurements or a memory
+  budget. Node RAM remains tight; watch usage and OOM/restart events under real
+  traffic. Recreate updates cause downtime, Riot development keys expire, and all
+  visitors share the Riot quota.
