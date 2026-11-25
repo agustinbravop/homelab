@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: riftregulars
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 128Mi

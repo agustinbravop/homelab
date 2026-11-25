@@ -57,6 +57,10 @@ data:
         url: https://roomix-onboarding.agusbravo.dev
         interval: 5m
         conditions: *public-conditions
+      - name: Rift Regulars
+        url: https://riftregulars.agusbravo.dev
+        interval: 5m
+        conditions: *public-conditions
       - name: Argo CD
         url: https://argocd.agusbravo.dev
         interval: 5m

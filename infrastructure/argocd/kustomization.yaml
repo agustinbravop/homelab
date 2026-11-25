@@ -16,3 +16,5 @@ resources:
   - gatus-app.yaml
   - commentlookout-app.yaml
   - commentlookout-imageupdater.yaml
+  - riftregulars-app.yaml
+  - riftregulars-imageupdater.yaml

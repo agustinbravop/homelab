@@ -1,0 +1,31 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: riftregulars-inflight
+spec:
+  inFlightReq:
+    amount: 2
+    sourceCriterion:
+      requestHost: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: riftregulars-api-rate
+spec:
+  rateLimit:
+    average: 10
+    burst: 20
+    sourceCriterion:
+      requestHost: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: riftregulars-player-rate
+spec:
+  rateLimit:
+    average: 2
+    burst: 4
+    sourceCriterion:
+      requestHost: true

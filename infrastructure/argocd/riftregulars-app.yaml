@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: riftregulars
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/agustinbravop/homelab
+    targetRevision: main
+    path: apps/riftregulars
+    kustomize:
+      images:
+        - ghcr.io/agustinbravop/riftregulars:latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: riftregulars
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

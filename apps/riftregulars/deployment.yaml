@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: riftregulars
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: riftregulars
+  template:
+    metadata:
+      labels:
+        app: riftregulars
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 40
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: riftregulars
+          image: ghcr.io/agustinbravop/riftregulars:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: riftregulars
+          env:
+            - name: ORIGIN
+              value: https://riftregulars.agusbravo.dev
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: "3000"
+          volumeMounts:
+            - name: featured
+              mountPath: /app/data/featured
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          startupProbe:
+            httpGet:
+              path: /favicon.png
+              port: http
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /favicon.png
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /favicon.png
+              port: http
+            periodSeconds: 30
+      volumes:
+        - name: featured
+          persistentVolumeClaim:
+            claimName: riftregulars
